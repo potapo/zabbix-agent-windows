@@ -47,17 +47,18 @@ IF NOT DEFINED hostname (set /p hostname=input zabbix_agent hostname: )
 IF NOT DEFINED zabbix_server (set /p zabbix_server=Please input zabbix server address: )
 IF "%zabbix_server%"=="=" (set /p zabbix_server=Please input zabbix server address: )
 
-
 echo ## Modify agent setting ##
-ECHO MODIFY ZABBIX SERVER IP CHOICE 1
-ECHO MODIFY ZABBIX AGENT HOSTNAME CHOICE 2
-ECHO USE DEFAULT SETTING CHOICE 3 
-CHOICE /C 123 /M  "INPUT YOUR CHOICE "
+ECHO.
+ECHO modift Zabbix server IP or hostname : 1 
+ECHO.
+ECHO use this setting : 2
+ECHO.
+CHOICE /C 12 /M  "INPUT YOUR CHOICE "
 
-if errorlevel 3 goto install
-if errorlevel 2 (set /p hostname=input zabbix_agent hostname: )
-if errorlevel 1 (set /p zabbix_server=Please input zabbix server address:  )
-
+if errorlevel 2 goto install
+if errorlevel 1 (set /p hostname=input zabbix_agent hostname: 
+set /p zabbix_server=Please input zabbix server address:  
+)
 
 
 :install
@@ -83,32 +84,40 @@ IF "%PROCESSOR_ARCHITECTURE%"=="x86" (
 :x86
 xcopy "%~dp0\bin\win32" c:\zabbix /e /i /y >>%LOGFILE%
 copy "%conf_file%" c:\zabbix\zabbix_agentd.conf /y >>%LOGFILE%
-IF NOT ERRORLEVEL 0 (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+IF NOT %ERRORLEVEL% == 0 (ECHO OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER
+pause 
 EXIT )
 sc stop  "Zabbix Agent" >>%LOGFILE%
 sc delete  "Zabbix Agent" >>%LOGFILE%
 c:\zabbix\zabbix_agentd.exe -c c:\zabbix\zabbix_agentd.conf -i 2>>%LOGFILE% 2>>%LOGFILE% 
-IF NOT ERRORLEVEL 0 (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+pause 
 EXIT )
 c:\zabbix\zabbix_agentd.exe -c c:\zabbix\zabbix_agentd.conf -s 2>>%LOGFILE% 2>>%LOGFILE% 
-IF NOT ERRORLEVEL 0 (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+pause 
 EXIT )
 goto firewall
  
 :x64
 xcopy "%~dp0\bin\win64" c:\zabbix /e /i /y >>%LOGFILE%
-IF NOT ERRORLEVEL 0 (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG% AT THIS FOLDER"
+IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG% AT THIS FOLDER"
+pause 
 EXIT )
 copy "%conf_file%" c:\zabbix\zabbix_agentd.conf /y >>%LOGFILE%
-IF NOT ERRORLEVEL 0 (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+pause 
 EXIT )
 sc stop  "Zabbix Agent" >>%LOGFILE%
 sc delete  "Zabbix Agent" >>%LOGFILE%
 c:\zabbix\zabbix_agentd.exe -c c:\zabbix\zabbix_agentd.conf -i 2>>%LOGFILE%
-IF NOT ERRORLEVEL 0 (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+pause 
 EXIT )
 c:\zabbix\zabbix_agentd.exe -c c:\zabbix\zabbix_agentd.conf -s 2>>%LOGFILE%
-IF NOT ERRORLEVEL 0 ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+pause 
+EXIT)
 goto firewall
  
 :firewall
@@ -125,7 +134,9 @@ IF "%_major%"=="5" (
   IF "%_minor%"=="2" IF "%_processor_architecture%"=="64bit" Echo OS details: Windows 2003 or XP 64 bit [%_processor_architecture%] >>%LOGFILE%
   netsh firewall delete portopening protocol=tcp port=10050 >>%LOGFILE%
   netsh firewall add portopening protocol=tcp port=10050 name=zabbix_10050 mode=enable scope=custom addresses=%zabbix_server% >>%LOGFILE%
-) ELSE IF "%_major%"=="6" (
+  IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+pause 
+  EXIT )
   IF "%_minor%"=="0" Echo OS details: Windows Vista or Windows 2008 [%_processor_architecture%] >>%LOGFILE%
   IF "%_minor%"=="1" Echo OS details: Windows 7 or Windows 2008 R2 [%_processor_architecture%] >>%LOGFILE%
   IF "%_minor%"=="2" Echo OS details: Windows 8 or Windows Server 2012 [%_processor_architecture%] >>%LOGFILE%
@@ -133,8 +144,9 @@ IF "%_major%"=="5" (
   IF "%_minor%"=="4" Echo OS details: Windows 10  [%_processor_architecture%] >>%LOGFILE%
   netsh advfirewall firewall delete rule name="zabbix_10050" >>%LOGFILE%
   netsh advfirewall firewall add rule name="zabbix_10050" protocol=TCP dir=in localport=10050 action=allow remoteip=%zabbix_server% >>%LOGFILE%
-  IF NOT ERRORLEVEL 0 (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
-EXIT )
+  IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
+	pause 
+  EXIT )
 )
 ECHO INSTALL SUCCESS.
  
