@@ -10,7 +10,6 @@ ECHO #############	                  	################
 echo ########################################################
 echo.
 echo.
-CHOICE /C YNC /M "确认请按 Y，否请按 N，或者取消请按 C。" 
 echo ## Current agent setting ##
 
 set conf_file=%~dp0\conf\zabbix_agentd.win.conf
@@ -168,11 +167,10 @@ IF NOT %SectFound%==1 (
         ECHO INI key not found
         EXIT /B 2
     ) ELSE (
-        IF DEFINED INIValue (
-            rem ECHO %INIKey%=%INIValue%
-        ) ELSE (
+        IF NOT DEFINED INIValue (
             ECHO Value not defined
             EXIT /B 3
+			)
         )
     )
 )
