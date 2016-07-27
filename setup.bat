@@ -19,7 +19,8 @@ call :getkey zabbix_server
 IF DEFINED Zabbix_server (echo Zabbix Server: %Zabbix_server%)
 
 call :getkey usecomputername
-echo  %usecomputername% 
+
+
 IF "%usecomputername%" equ  "yes" (ECHO Zabbix-Agent hostname: %computername%
 set hostname=%computername%
 )
@@ -31,9 +32,6 @@ IF DEFINED HostMetadata (
 	echo HostMetadata=%HostMetadata%>>%conf_file%)
 )
 echo.
-echo.
-echo.
-
 
 rem log 
 ECHO  Zabbix_server IP address  %zabbix_server% >>%LOGFILE%
@@ -44,21 +42,25 @@ IF DEFINED HostMetadata (
 )
 	
 rem Input 
-
-echo ## Modify agent setting ##
-
 IF NOT DEFINED hostname (set /p hostname=input zabbix_agent hostname: )
 
 IF NOT DEFINED zabbix_server (set /p zabbix_server=Please input zabbix server address: )
 IF "%zabbix_server%"=="=" (set /p zabbix_server=Please input zabbix server address: )
-echo %zabbix_server% | findstr /v "^[0-9][0-9][0-9][0-9] [3-9][0-9][0-9] 2[6][0-9] 25[6-9]"  1>nul>2>nul
-IF ERRORLEVEL 1 (ECHO  Invalid ip address
-exit /B 1 )
+
+
+echo ## Modify agent setting ##
+ECHO MODIFY ZABBIX SERVER IP CHOICE 1
+ECHO MODIFY ZABBIX AGENT HOSTNAME CHOICE 2
+ECHO USE DEFAULT SETTING CHOICE 3 
+CHOICE /C 123 /M  "INPUT YOUR CHOICE "
+
+if errorlevel 3 goto install
+if errorlevel 2 (set /p hostname=input zabbix_agent hostname: )
+if errorlevel 1 (set /p zabbix_server=Please input zabbix server address:  )
 
 
 
-
-
+:install
 for /f "delims=" %%a in ('type "%conf_file%"') do (
   set  str=%%a
   set "str=!str:127.0.0.1=%zabbix_server%!"
