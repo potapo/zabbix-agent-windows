@@ -45,3 +45,8 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+bin/win32/dev/zabbix_sender.lib
+*.dll
+bin/win32/zabbix_agentd.exe
+*.exe
+bin/win64/dev/zabbix_sender.lib
