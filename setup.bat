@@ -1,20 +1,12 @@
 @Echo off
 setlocal enabledelayedexpansion
-
+echo ********************************************************
+ECHO **************	Zabbix-Agent-Pwrd	****************
+echo ********************************************************
 echo.
-echo.
-echo ########################################################
-ECHO #############	                  	################
-ECHO #############	Zabbix-Agent-Pwrd	################
-ECHO #############	                  	################
-echo ########################################################
-echo.
-echo.
-echo ## Current agent setting ##
-
+echo **************** Current agent setting *****************
 set conf_file=%~dp0\conf\zabbix_agentd.win.conf
 set LOGFILE=c:\\install.log
-
 call :getkey zabbix_server
 IF DEFINED Zabbix_server (echo Zabbix Server: %Zabbix_server%)
 
@@ -42,23 +34,19 @@ IF DEFINED HostMetadata (
 )
 	
 rem Input 
+echo **************** Modify agent setting ******************
 IF NOT DEFINED hostname (set /p hostname=input zabbix_agent hostname: )
 
-IF NOT DEFINED zabbix_server (set /p zabbix_server=Please input zabbix server address: )
-IF "%zabbix_server%"=="=" (set /p zabbix_server=Please input zabbix server address: )
-
-echo ## Modify agent setting ##
-ECHO.
-ECHO modift Zabbix server IP or hostname : 1 
-ECHO.
-ECHO use this setting : 2
-ECHO.
-CHOICE /C 12 /M  "INPUT YOUR CHOICE "
-
-if errorlevel 2 goto install
-if errorlevel 1 (set /p hostname=input zabbix_agent hostname: 
-set /p zabbix_server=Please input zabbix server address:  
+IF NOT DEFINED zabbix_server (set /p zabbix_server=Please input zabbix server address: 
+SET FLAG=1
 )
+IF "%zabbix_server%"=="=" (set /p zabbix_server=Please input zabbix server address: 
+SET FLAG=1
+)
+
+
+IF NOT DEFINED FLAG set /p  ip=Please input zabbix server address,default (%zabbix_server%):  
+IF DEFINED  ip (set zabbix_server=%ip%) ELSE (goto install)
 
 
 :install
@@ -128,26 +116,17 @@ Echo Major version: %_major%  Minor Version: %_minor%.%_build% >>%LOGFILE%
  
 :: OS detection
 IF "%_major%"=="5" (
-  IF "%_minor%"=="0" Echo OS details: Windows 2000 [%_processor_architecture%] >>%LOGFILE%
-  IF "%_minor%"=="1" Echo OS details: Windows XP [%_processor_architecture%] >>%LOGFILE%
-  IF "%_minor%"=="2" IF "%_processor_architecture%"=="32bit" Echo OS details: Windows 2003 [%_processor_architecture%] >>%LOGFILE%
-  IF "%_minor%"=="2" IF "%_processor_architecture%"=="64bit" Echo OS details: Windows 2003 or XP 64 bit [%_processor_architecture%] >>%LOGFILE%
   netsh firewall delete portopening protocol=tcp port=10050 >>%LOGFILE%
   netsh firewall add portopening protocol=tcp port=10050 name=zabbix_10050 mode=enable scope=custom addresses=%zabbix_server% >>%LOGFILE%
-  IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
-pause 
-  EXIT )
-  IF "%_minor%"=="0" Echo OS details: Windows Vista or Windows 2008 [%_processor_architecture%] >>%LOGFILE%
-  IF "%_minor%"=="1" Echo OS details: Windows 7 or Windows 2008 R2 [%_processor_architecture%] >>%LOGFILE%
-  IF "%_minor%"=="2" Echo OS details: Windows 8 or Windows Server 2012 [%_processor_architecture%] >>%LOGFILE%
-  IF "%_minor%"=="3" Echo OS details: Windows 8.1 or Windows Server 2012 R2 [%_processor_architecture%] >>%LOGFILE%
-  IF "%_minor%"=="4" Echo OS details: Windows 10  [%_processor_architecture%] >>%LOGFILE%
-  netsh advfirewall firewall delete rule name="zabbix_10050" >>%LOGFILE%
+  echo aaaqaa
+  goto end
+  )
+else (  netsh advfirewall firewall delete rule name="zabbix_10050" >>%LOGFILE%
   netsh advfirewall firewall add rule name="zabbix_10050" protocol=TCP dir=in localport=10050 action=allow remoteip=%zabbix_server% >>%LOGFILE%
-  IF NOT %ERRORLEVEL% == 0  (ECHO "OCCUR ERROR ,PLEASE VIEW THE INSTALL.LOG AT THIS FOLDER"
-	pause 
-  EXIT )
-)
+  echo bbbbb
+  goto end
+  )
+:end
 ECHO INSTALL SUCCESS.
  
 pause
@@ -172,7 +151,6 @@ SET KeyFound=0
 FOR /F "tokens=* delims=" %%A IN ('TYPE %INIFile%') DO CALL :ParseINI "%%A"
 
 :: Display the result
-ECHO.
 IF NOT %SectFound%==1 (
     ECHO INI section not found
     EXIT /B 1
